@@ -60,7 +60,7 @@ variable ip_address_name {
 
 variable tags {
   description = "Additional compute instance network tags to apply route to."
-  type        = "list"
+  type        = list(string)
   default     = []
 }
 
@@ -76,7 +76,12 @@ variable machine_type {
 
 variable compute_image {
   description = "Image used for NAT compute VMs."
-  default     = "projects/debian-cloud/global/images/family/debian-9"
+  default     = "debian-9"
+}
+
+variable compute_family {
+  description = "Image family used for NAT compute VMs."
+  default     = "debian-cloud"
 }
 
 variable ip {
@@ -96,7 +101,7 @@ variable squid_config {
 
 variable metadata {
   description = "Metadata to be attached to the NAT gateway instance"
-  type        = "map"
+  type        = map(any)
   default     = {}
 }
 
@@ -107,13 +112,13 @@ variable "ssh_fw_rule" {
 
 variable ssh_source_ranges {
   description = "Network ranges to allow SSH from"
-  type        = "list"
+  type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
 variable instance_labels {
   description = "Labels added to instances."
-  type        = "map"
+  type        = map(any)
   default     = {}
 }
 
@@ -129,7 +134,7 @@ variable autohealing_enabled {
 
 variable region_params {
   description = "Map of default zones and IPs for each region. Can be overridden using the `zone` and `ip` variables."
-  type        = "map"
+  type        = map(any)
 
   default = {
     asia-east1 = {
