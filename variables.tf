@@ -70,6 +70,12 @@ variable "use_target_tags" {
   default = true
 }
 
+variable "nat_ig_tags" {
+  description = "Tags for all the NAT Gateway instances"
+  type = list(string)
+  default = []
+}
+
 variable route_priority {
   description = "The priority for the Compute Engine Route"
   default     = 800
