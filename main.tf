@@ -86,6 +86,7 @@ module "nat-gateway" {
   network            = var.network
   subnetwork         = var.subnetwork
   subnetwork_project = var.project
+  hostname = local.name
   instance_template  = module.instance_template.self_link
   target_size        = 1
   hc_port            = "80"
