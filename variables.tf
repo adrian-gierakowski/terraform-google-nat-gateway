@@ -66,14 +66,14 @@ variable tags {
 
 variable "use_target_tags" {
   description = "Weather or not to use tags to target the NAT Gateway route or use the entire network"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "nat_ig_tags" {
   description = "Tags for all the NAT Gateway instances"
-  type = list(string)
-  default = []
+  type        = list(string)
+  default     = []
 }
 
 variable route_priority {
@@ -225,6 +225,6 @@ variable region_params {
 
 variable "dest_ranges" {
   description = "The destination IPv4 address range that this route applies to"
-  type = list(string)
+  type        = list(string)
   default     = ["0.0.0.0/0"]
 }

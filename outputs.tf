@@ -41,5 +41,5 @@ output routing_tag_zonal {
 
 output "nat_instance_tags" {
   description = "The tag in use by the NAT Gateway instances"
-  value = local.instance_tags
+  value       = local.instance_tags
 }

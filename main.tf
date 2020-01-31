@@ -86,7 +86,7 @@ module "nat-gateway" {
   network            = var.network
   subnetwork         = var.subnetwork
   subnetwork_project = var.project
-  hostname = local.name
+  hostname           = local.name
   instance_template  = module.instance_template.self_link
   target_size        = 1
   hc_port            = "80"
@@ -103,12 +103,12 @@ module "nat-gateway" {
 }
 
 resource "google_compute_route" "nat-gateway" {
-  for_each               = toset(var.dest_ranges)
-  name                   = format(
-                            "%v-route-%v",
-                            local.zonal_tag,
-                            replace(split("/", each.key)[0], ".", "-")
-                          )
+  for_each = toset(var.dest_ranges)
+  name = format(
+    "%v-route-%v",
+    local.zonal_tag,
+    replace(split("/", each.key)[0], ".", "-")
+  )
   project                = var.project
   dest_range             = each.value
   network                = data.google_compute_network.network.self_link
