@@ -103,7 +103,11 @@ module "nat-gateway" {
 
 resource "google_compute_route" "nat-gateway" {
   for_each               = toset(var.dest_ranges)
-  name                   = local.zonal_tag
+  name                   = format(
+                            "%v-route-%v",
+                            local.zonal_tag,
+                            replace(split("/", each.key)[0], ".", "-")
+                          )
   project                = var.project
   dest_range             = each.value
   network                = data.google_compute_network.network.self_link
