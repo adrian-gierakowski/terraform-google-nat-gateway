@@ -56,6 +56,7 @@ locals {
 
 module "instance_template" {
   source             = "terraform-google-modules/vm/google//modules/instance_template"
+  version            = "~> v1.4"
   project_id         = var.project
   region             = var.region
   subnetwork         = var.subnetwork
@@ -81,6 +82,7 @@ module "instance_template" {
 
 module "nat-gateway" {
   source             = "terraform-google-modules/vm/google//modules/mig"
+  version            = "~> v1.4"
   project_id         = var.project
   region             = var.region
   network            = var.network
@@ -128,7 +130,7 @@ resource "google_compute_firewall" "nat-gateway" {
     protocol = "all"
   }
 
-  source_tags = compact(concat(list(local.regional_tag, local.zonal_tag), var.tags))
+  source_tags = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.tags)) : []
   target_tags = compact(concat(local.instance_tags, var.tags))
 }
 
