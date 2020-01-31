@@ -37,8 +37,8 @@ data "google_compute_address" "default" {
 }
 
 data "google_compute_region_instance_group" "nat-group" {
-  project = var.project
-  region = var.region
+  project   = var.project
+  region    = var.region
   self_link = module.nat-gateway.instance_group
 }
 
@@ -57,7 +57,7 @@ locals {
 module "instance_template" {
   source             = "terraform-google-modules/vm/google//modules/instance_template"
   project_id         = var.project
-  region = var.region
+  region             = var.region
   subnetwork         = var.subnetwork
   subnetwork_project = var.project
   can_ip_forward     = true
@@ -90,22 +90,22 @@ module "nat-gateway" {
   target_size        = 1
   hc_port            = "80"
   update_policy = [{
-    type            = "PROACTIVE"
-    minimal_action  = "REPLACE"
-    max_surge_fixed = 0
+    type                    = "PROACTIVE"
+    minimal_action          = "REPLACE"
+    max_surge_fixed         = 0
     max_surge_percent       = null
-    max_unavailable_fixed = 3
+    max_unavailable_fixed   = 3
     max_unavailable_percent = null
-    min_ready_sec = 30
+    min_ready_sec           = 30
   }]
   http_healthcheck_enable = var.autohealing_enabled
 }
 
 resource "google_compute_route" "nat-gateway" {
-  count                  = var.module_enabled ? 1 : 0
+  for_each               = toset(var.dest_ranges)
   name                   = local.zonal_tag
   project                = var.project
-  dest_range             = var.dest_range
+  dest_range             = each.value
   network                = data.google_compute_network.network.self_link
   next_hop_instance      = data.google_compute_instance.nat-server.self_link
   next_hop_instance_zone = local.zone
