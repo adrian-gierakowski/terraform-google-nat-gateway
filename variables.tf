@@ -64,6 +64,12 @@ variable tags {
   default     = []
 }
 
+variable "use_target_tags" {
+  description = "Weather or not to use tags to target the NAT Gateway route or use the entire network"
+  type = bool
+  default = true
+}
+
 variable route_priority {
   description = "The priority for the Compute Engine Route"
   default     = 800

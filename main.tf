@@ -113,8 +113,23 @@ resource "google_compute_route" "nat-gateway" {
   network                = data.google_compute_network.network.self_link
   next_hop_instance      = data.google_compute_instance.nat-server.self_link
   next_hop_instance_zone = local.zone
-  tags                   = compact(concat(list(local.regional_tag, local.zonal_tag), var.tags))
+  tags                   = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.tags)) : []
   priority               = var.route_priority
+}
+
+resource "google_compute_route" "nat-internet-gateway" {
+  for_each               = toset(var.dest_ranges)
+  name = format(
+                "%v-to-ig-%v",
+                local.zonal_tag,
+                replace(split("/", each.key)[0], ".", "-")
+              )
+  project = var.project
+  dest_range = each.value
+  network = data.google_compute_network.network.self_link
+  next_hop_gateway = "default-internet-gateway"
+  tags = local.instance_tags
+  priority = 700
 }
 
 resource "google_compute_firewall" "nat-gateway" {
