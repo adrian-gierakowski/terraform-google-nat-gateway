@@ -73,7 +73,7 @@ variable "use_target_tags" {
 variable "nat_ig_tags" {
   description = "Tags for all the NAT Gateway instances"
   type        = list(string)
-  default     = ["nat-instance-to-ig"]
+  default     = []
 }
 
 variable route_priority {
