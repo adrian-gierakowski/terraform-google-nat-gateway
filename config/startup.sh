@@ -24,3 +24,10 @@ EOM
 
   systemctl reload squid
 fi
+
+# Install debug utils
+ENABLE_DEBUG_UTILS="${debug_utils_enabled}"
+
+if [[ "$$ENABLE_DEBUG_UTILS" == "true" ]]; then
+  apt-get install -y dnsutils traceroute
+fi
