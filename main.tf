@@ -102,6 +102,7 @@ module "nat-gateway" {
     min_ready_sec           = 30
   }]
   http_healthcheck_enable = var.autohealing_enabled
+  distribution_policy_zones = [local.zone]
 }
 
 resource "google_compute_route" "nat-gateway" {
