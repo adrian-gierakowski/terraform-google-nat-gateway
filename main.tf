@@ -101,7 +101,7 @@ module "nat-gateway" {
     max_unavailable_percent = null
     min_ready_sec           = 30
   }]
-  http_healthcheck_enable = var.autohealing_enabled
+  http_healthcheck_enable   = var.autohealing_enabled
   distribution_policy_zones = [local.zone]
 }
 
