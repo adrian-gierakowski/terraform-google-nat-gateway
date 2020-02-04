@@ -21,6 +21,7 @@ data "template_file" "nat-startup-script" {
     squid_enabled = var.squid_enabled
     squid_config  = var.squid_config
     module_path   = path.module
+    debug_utils_enabled = var.debug_utils_enabled
   }
 }
 
