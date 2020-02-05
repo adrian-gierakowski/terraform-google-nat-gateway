@@ -15,7 +15,7 @@ apt-get install -y nginx
 
 ENABLE_SQUID="${squid_enabled}"
 
-if [[ "$$ENABLE_SQUID" == "true" ]]; then
+if [[ "$ENABLE_SQUID" == "true" ]]; then
   apt-get install -y squid3
 
   cat - > /etc/squid/squid.conf <<'EOM'
@@ -28,6 +28,6 @@ fi
 # Install debug utils
 ENABLE_DEBUG_UTILS="${debug_utils_enabled}"
 
-if [[ "$$ENABLE_DEBUG_UTILS" == "true" ]]; then
+if [[ "$ENABLE_DEBUG_UTILS" == "true" ]]; then
   apt-get install -y dnsutils traceroute
 fi
