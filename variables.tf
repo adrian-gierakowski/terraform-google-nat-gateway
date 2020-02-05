@@ -108,7 +108,7 @@ variable squid_enabled {
 
 variable debug_utils_enabled {
   description = "Install dnsutils and traceroute for debugging purposes"
-  default = "false"
+  default     = "false"
 }
 
 variable squid_config {
