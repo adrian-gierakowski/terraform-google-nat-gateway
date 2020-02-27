@@ -22,6 +22,8 @@ data "template_file" "nat-startup-script" {
     squid_config        = var.squid_config
     module_path         = path.module
     debug_utils_enabled = var.debug_utils_enabled
+    stackdriver_monitoring_enabled = var.stackdriver_monitoring_enabled
+    stackdriver_logging_enabled = var.stackdriver_logging_enabled
   }
 }
 

@@ -111,6 +111,16 @@ variable debug_utils_enabled {
   default     = "false"
 }
 
+variable stackdriver_monitoring_enabled {
+  description = "Enable stackdriver monitoring agent"
+  default = "true"
+}
+
+variable stackdriver_logging_enabled {
+  description = "Enable stackdriver logging agent"
+  default = "true"
+}
+
 variable squid_config {
   description = "The squid config file to use. If not specifed the module file config/squid.conf will be used."
   default     = ""

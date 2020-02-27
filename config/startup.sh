@@ -31,3 +31,16 @@ ENABLE_DEBUG_UTILS="${debug_utils_enabled}"
 if [[ "$ENABLE_DEBUG_UTILS" == "true" ]]; then
   apt-get install -y dnsutils traceroute
 fi
+
+ENABLE_STACKDRIVER_AGENT="${stackdriver_monitoring_enabled}"
+ENABLE_STACKDRIVER_LOGGING_AGENT="${stackdriver_logging_enabled}"
+
+if [[ "$ENABLE_STACKDRIVER_AGENT" == "true" ]]; then
+  curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+  bash install-monitoring-agent.sh
+fi
+
+if [[ "$ENABLE_STACKDRIVER_LOGGING_AGENT" == "true" ]]; then
+  curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+  bash install-logging-agent.sh
+fi
