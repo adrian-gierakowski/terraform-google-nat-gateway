@@ -85,7 +85,7 @@ module "instance_template" {
 
 module "nat-gateway" {
   source             = "terraform-google-modules/vm/google//modules/mig"
-  version            = "~> v1.4"
+  version            = "~> v3.0"
   project_id         = var.project
   region             = var.region
   network            = var.network
@@ -94,7 +94,6 @@ module "nat-gateway" {
   hostname           = local.name
   instance_template  = module.instance_template.self_link
   target_size        = 1
-  hc_port            = "80"
   update_policy = [{
     type                    = "PROACTIVE"
     minimal_action          = "REPLACE"
@@ -104,7 +103,6 @@ module "nat-gateway" {
     max_unavailable_percent = null
     min_ready_sec           = 30
   }]
-  http_healthcheck_enable   = var.autohealing_enabled
   distribution_policy_zones = [local.zone]
 }
 
