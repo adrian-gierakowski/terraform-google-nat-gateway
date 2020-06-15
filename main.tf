@@ -59,7 +59,7 @@ locals {
 
 module "instance_template" {
   source             = "terraform-google-modules/vm/google//modules/instance_template"
-  version            = "~> v1.4"
+  version            = "~> v3.0"
   project_id         = var.project
   region             = var.region
   subnetwork         = var.subnetwork
