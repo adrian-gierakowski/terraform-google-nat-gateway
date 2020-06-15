@@ -113,7 +113,7 @@ resource "google_compute_route" "nat-gateway" {
     local.zonal_tag,
     replace(split("/", each.key)[0], ".", "-")
   )
-  project                = var.project
+  project                = var.network_project == "" ? var.project : var.network_project
   dest_range             = each.value
   network                = data.google_compute_network.network.self_link
   next_hop_instance      = data.google_compute_instance.nat-server.self_link
@@ -126,7 +126,7 @@ resource "google_compute_firewall" "nat-gateway" {
   count   = var.module_enabled ? 1 : 0
   name    = local.zonal_tag
   network = var.network
-  project = var.project
+  project = var.network_project == "" ? var.project : var.network_project
 
   allow {
     protocol = "all"
