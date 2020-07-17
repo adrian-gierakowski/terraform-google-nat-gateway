@@ -86,11 +86,6 @@ variable compute_family {
   default     = "debian-cloud"
 }
 
-variable squid_enabled {
-  description = "Enable squid3 proxy on port 3128."
-  default     = "false"
-}
-
 variable debug_utils_enabled {
   description = "Install dnsutils and traceroute for debugging purposes"
   default     = "false"
@@ -106,8 +101,8 @@ variable stackdriver_logging_enabled {
   default = "true"
 }
 
-variable squid_config {
-  description = "The squid config file to use. If not specifed the module file config/squid.conf will be used."
+variable squid_config_tmpl {
+  description = "The squid config file template to use. The template will be called with PROXY_PORT = var.proxy_port. Default to config/squid.conf.tmpl"
   default     = ""
 }
 
@@ -228,9 +223,14 @@ variable "size" {
   default     = 1
 }
 
-variable "squid_port" {
-  description = "Port of the squid proxy."
+variable "proxy_port" {
+  description = "Port at which the proxy will be accepting connections."
   default     = "3128"
+}
+
+variable "proxy_port_transparent" {
+  description = "Port at which the proxy will be accepting connections which are to be proxied in transparent mode."
+  default     = "3129"
 }
 
 variable "allowed_source_ranges" {

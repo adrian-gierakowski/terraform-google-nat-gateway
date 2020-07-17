@@ -24,7 +24,7 @@ output proxy_instance_group_name {
   value       = local.name
 }
 
-# output squid_port {
-#   description = "The name of the instance group. Names of individual instances can be obtained by appending -$INDXEX to this name."
-#   value       = local.name
-# }
+output proxy_port {
+  description = "Port at which the proxy will be accepting connections."
+  value       = var.proxy_port
+}

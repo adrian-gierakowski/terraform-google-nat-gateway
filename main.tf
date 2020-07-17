@@ -18,9 +18,11 @@ data "template_file" "proxy-startup-script" {
   template = file(format("%s/config/startup.sh", path.module))
 
   vars = {
-    squid_enabled       = var.squid_enabled
-    squid_config        = var.squid_config
-    module_path         = path.module
+    squid_enabled       = "true"
+    squid_config        = templatefile(
+      var.squid_config_tmpl == "" ? "${path.module}/config/squid.conf.tmpl" : var.squid_config_tmpl,
+      { PROXY_PORT = var.proxy_port }
+    )
     debug_utils_enabled = var.debug_utils_enabled
     stackdriver_monitoring_enabled = var.stackdriver_monitoring_enabled
     stackdriver_logging_enabled = var.stackdriver_logging_enabled
@@ -115,7 +117,7 @@ resource "google_compute_firewall" "proxy-squid" {
 
   allow {
     protocol = "tcp"
-    ports    = [var.squid_port]
+    ports    = [var.proxy_port]
   }
 
   source_ranges = var.allowed_source_ranges
