@@ -109,9 +109,8 @@ resource "google_compute_region_per_instance_config" "proxy" {
   }
 }
 
-resource "google_compute_firewall" "proxy-squid" {
-  count   = var.module_enabled ? 1 : 0
-  name    = "${local.zonal_tag}-squid"
+resource "google_compute_firewall" "proxies-ingress" {
+  name    = local.zonal_tag
   network = var.network
   project = var.network_project == "" ? var.project : var.network_project
 

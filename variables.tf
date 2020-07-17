@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-variable module_enabled {
-  description = "To disable this module, set this to false"
-  default     = true
-}
-
 variable project {
   description = "The project to deploy to, if not set the default provider project is used."
   default     = ""
