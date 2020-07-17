@@ -40,7 +40,7 @@ variable subnetwork {
 }
 
 variable region {
-  description = "The region to create the nat gateway instance in."
+  description = "The region to create the proxy instance in."
 }
 
 variable zone {
@@ -49,56 +49,41 @@ variable zone {
 }
 
 variable name {
-  description = "Prefix added to the resource names, for example 'prod-'. By default, resources will be named in the form of '<name>nat-gateway-<zone>'"
+  description = "Prefix added to the resource names, for example 'prod-'. By default, resources will be named in the form of '<name>proxy-<zone>'"
   default     = ""
 }
 
-variable ip_address_name {
-  description = "Name of an existing reserved external address to use."
-  default     = ""
-}
-
-variable tags {
-  description = "Additional compute instance network tags to apply route to."
+variable allowed_source_tags {
+  description = "Tags of instances which will be allowed to connect to the proxies."
   type        = list(string)
   default     = []
 }
 
-variable "use_target_tags" {
-  description = "Weather or not to use tags to target the NAT Gateway route or use the entire network"
+variable use_target_tags {
+  description = "Weather or not to use tags to target the proxy route or use the entire network"
   type        = bool
   default     = true
 }
 
-variable "nat_ig_tags" {
-  description = "Tags for all the NAT Gateway instances"
+variable proxy_instance_tags {
+  description = "Tags for all proxy instances"
   type        = list(string)
   default     = []
 }
 
-variable route_priority {
-  description = "The priority for the Compute Engine Route"
-  default     = 800
-}
-
 variable machine_type {
-  description = "The machine type for the NAT gateway instances"
-  default     = "n1-standard-2"
+  description = "The machine type for the proxy instances"
+  default     = "g1-small"
 }
 
 variable compute_image {
-  description = "Image used for NAT compute VMs."
+  description = "Image used for proxy VMs."
   default     = "debian-9"
 }
 
 variable compute_family {
-  description = "Image family used for NAT compute VMs."
+  description = "Image family used for proxy VMs."
   default     = "debian-cloud"
-}
-
-variable ip {
-  description = "Override the internal IP. If not provided, an internal IP will automatically be assigned."
-  default     = ""
 }
 
 variable squid_enabled {
@@ -127,7 +112,7 @@ variable squid_config {
 }
 
 variable metadata {
-  description = "Metadata to be attached to the NAT gateway instance"
+  description = "Metadata to be attached to the proxy instance"
   type        = map(any)
   default     = {}
 }
@@ -238,8 +223,26 @@ variable region_params {
   }
 }
 
-variable "dest_ranges" {
-  description = "The destination IPv4 address range that this route applies to"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
+variable "size" {
+  description = "Number of instances to create"
+  default     = 1
+}
+
+variable "squid_port" {
+  description = "Port of the squid proxy."
+  default     = "3128"
+}
+
+variable "allowed_source_ranges" {
+  description = "IP ranges which will be allowed to connect to the squid proxy."
+  type = list(string)
+  default = null
+}
+
+variable "access_scopes" {
+  description = "Assess scopes granted to the proxy instance."
+  default     = [
+    "https://www.googleapis.com/auth/logging.write",
+    "https://www.googleapis.com/auth/monitoring.write"
+  ]
 }

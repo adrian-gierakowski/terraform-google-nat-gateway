@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-data "template_file" "nat-startup-script" {
+data "template_file" "proxy-startup-script" {
   template = file(format("%s/config/startup.sh", path.module))
 
   vars = {
@@ -27,34 +27,12 @@ data "template_file" "nat-startup-script" {
   }
 }
 
-data "google_compute_network" "network" {
-  name    = var.network
-  project = var.network_project == "" ? var.project : var.network_project
-}
-
-data "google_compute_address" "default" {
-  count   = var.ip_address_name == "" ? 0 : 1
-  name    = var.ip_address_name
-  project = var.network_project == "" ? var.project : var.network_project
-  region  = var.region
-}
-
-data "google_compute_region_instance_group" "nat-group" {
-  project   = var.project
-  region    = var.region
-  self_link = module.nat-gateway.instance_group
-}
-
-data "google_compute_instance" "nat-server" {
-  self_link = data.google_compute_region_instance_group.nat-group.instances[0].instance
-}
-
 locals {
-  zone          = "${var.zone == "" ? lookup(var.region_params["${var.region}"], "zone") : var.zone}"
-  name          = "${var.name}nat-gateway-${local.zone}"
-  instance_tags = ["inst-${local.zonal_tag}", "inst-${local.regional_tag}"]
-  zonal_tag     = "${var.name}nat-${local.zone}"
-  regional_tag  = "${var.name}nat-${var.region}"
+  zone                          = "${var.zone == "" ? lookup(var.region_params["${var.region}"], "zone") : var.zone}"
+  name                          = "${var.name}proxy-${local.zone}"
+  generated_proxy_instance_tags = ["inst-${local.zonal_tag}", "inst-${local.regional_tag}"]
+  zonal_tag                     = "${var.name}proxy-${local.zone}"
+  regional_tag                  = "${var.name}proxy-${var.region}"
 }
 
 module "instance_template" {
@@ -65,27 +43,31 @@ module "instance_template" {
   subnetwork         = var.subnetwork
   subnetwork_project = var.project
   can_ip_forward     = true
-  tags               = compact(concat(local.instance_tags, var.nat_ig_tags))
+  tags               = compact(concat(local.generated_proxy_instance_tags, var.proxy_instance_tags))
   labels             = var.instance_labels
   service_account = {
     email  = var.service_account_email
-    scopes = ["cloud-platform"]
+    scopes = var.access_scopes
   }
   machine_type         = var.machine_type
   name_prefix          = local.name
   source_image_family  = var.compute_image
   source_image_project = var.compute_family
-  startup_script       = data.template_file.nat-startup-script.rendered
+  startup_script       = data.template_file.proxy-startup-script.rendered
   metadata             = var.metadata
   access_config = [{
-    nat_ip       = element(concat(google_compute_address.default.*.address, data.google_compute_address.default.*.address, list("")), 0)
+    # Auto assign ips
+    nat_ip = null
     network_tier = "PREMIUM"
   }]
 }
 
-module "nat-gateway" {
-  source             = "terraform-google-modules/vm/google//modules/mig"
-  version            = "~> v3.0"
+
+module "proxy-mig" {
+  # PR pending: https://github.com/terraform-google-modules/terraform-google-vm/pull/105
+  source             = "git@github.com:adrian-gierakowski/terraform-google-vm.git//modules/mig?ref=1574b969c88ad44b275dba90f6ef41a2f051f630"
+  # source             = "terraform-google-modules/vm/google//modules/mig"
+  # version            = "~> v3.0"
   project_id         = var.project
   region             = var.region
   network            = var.network
@@ -93,52 +75,51 @@ module "nat-gateway" {
   subnetwork_project = var.project
   hostname           = local.name
   instance_template  = module.instance_template.self_link
-  target_size        = 1
+  # Set to null since number of instances is controlled by number of attached
+  # google_compute_region_per_instance_configs
+  target_size        = null
   update_policy = [{
-    type                    = "PROACTIVE"
-    minimal_action          = "REPLACE"
-    max_surge_fixed         = 0
-    max_surge_percent       = null
-    max_unavailable_fixed   = 3
-    max_unavailable_percent = null
-    min_ready_sec           = 30
+    instance_redistribution_type = "NONE"
+    type                         = "OPPORTUNISTIC"
+    minimal_action               = "REPLACE"
+    max_surge_fixed              = 0
+    max_surge_percent            = null
+    max_unavailable_fixed        = 3
+    max_unavailable_percent      = null
+    min_ready_sec                = 30
   }]
   distribution_policy_zones = [local.zone]
 }
 
-resource "google_compute_route" "nat-gateway" {
-  for_each = toset(var.dest_ranges)
-  name = format(
-    "%v-route-%v",
-    local.zonal_tag,
-    replace(split("/", each.key)[0], ".", "-")
-  )
-  project                = var.network_project == "" ? var.project : var.network_project
-  dest_range             = each.value
-  network                = data.google_compute_network.network.self_link
-  next_hop_instance      = data.google_compute_instance.nat-server.self_link
-  next_hop_instance_zone = local.zone
-  tags                   = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.tags)) : []
-  priority               = var.route_priority
+
+resource "google_compute_region_per_instance_config" "proxy" {
+  provider = google-beta
+  count = var.size
+
+  region = module.proxy-mig.instance_group_manager.region
+  region_instance_group_manager = module.proxy-mig.instance_group_manager.name
+
+  name = "${local.name}-${count.index}"
+  preserved_state {
+    metadata = {
+      index = count.index
+    }
+  }
 }
 
-resource "google_compute_firewall" "nat-gateway" {
+resource "google_compute_firewall" "proxy-squid" {
   count   = var.module_enabled ? 1 : 0
-  name    = local.zonal_tag
+  name    = "${local.zonal_tag}-squid"
   network = var.network
   project = var.network_project == "" ? var.project : var.network_project
 
   allow {
-    protocol = "all"
+    protocol = "tcp"
+    ports    = [var.squid_port]
   }
 
-  source_tags = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.tags)) : []
-  target_tags = compact(concat(local.instance_tags, var.tags))
+  source_ranges = var.allowed_source_ranges
+  source_tags = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.allowed_source_tags)) : []
+  target_tags = local.generated_proxy_instance_tags
 }
 
-resource "google_compute_address" "default" {
-  count   = var.module_enabled && var.ip_address_name == "" ? 1 : 0
-  name    = local.zonal_tag
-  project = var.project
-  region  = var.region
-}
