@@ -35,6 +35,7 @@ locals {
   generated_proxy_instance_tags = ["inst-${local.zonal_tag}", "inst-${local.regional_tag}"]
   zonal_tag                     = "${var.name}proxy-${local.zone}"
   regional_tag                  = "${var.name}proxy-${var.region}"
+  network_project               = var.network_project == "" ? var.project : var.network_project
 }
 
 module "instance_template" {
@@ -112,7 +113,7 @@ resource "google_compute_region_per_instance_config" "proxy" {
 resource "google_compute_firewall" "proxies-ingress" {
   name    = local.zonal_tag
   network = var.network
-  project = var.network_project == "" ? var.project : var.network_project
+  project = local.network_project
 
   allow {
     protocol = "tcp"
@@ -121,6 +122,26 @@ resource "google_compute_firewall" "proxies-ingress" {
 
   source_ranges = var.allowed_source_ranges
   source_tags = var.use_target_tags ? compact(concat(list(local.regional_tag, local.zonal_tag), var.allowed_source_tags)) : []
+  target_tags = local.generated_proxy_instance_tags
+}
+
+resource "google_compute_firewall" "proxy-vm-ssh" {
+  count = length(var.ssh_source_ranges) > 0 ? 1 : 0
+
+  name    = "${local.zonal_tag}-ssh"
+  network = var.network
+  project = local.network_project
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = var.ssh_source_ranges
   target_tags = local.generated_proxy_instance_tags
 }
 
