@@ -107,6 +107,18 @@ resource "google_compute_region_per_instance_config" "proxy" {
       index = count.index
     }
   }
+
+  # Destroy VM instance when instance_config is deleted. This is needed since
+  # VMs are not automatically deleted when a config is deleted (even though
+  # they are automatically created).
+  # See: https://github.com/hashicorp/terraform-provider-google/issues/9042
+  provisioner "local-exec" {
+    when    = destroy
+    # NODE: this requires gcloud, with access to appropriate credentials to be
+    # on PATH. We cannot pass the path to gcloud via a var since vars cannot
+    # be accessed in destroy provisioner (only self/count/for_each).
+    command = "gcloud compute instance-groups managed delete-instances ${replace(self.name, "/-${count.index}$/", "")}-mig --instances=${self.name} --project ${self.project} --region ${self.region}"
+  }
 }
 
 resource "google_compute_firewall" "proxies-ingress" {
