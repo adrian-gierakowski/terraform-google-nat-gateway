@@ -39,10 +39,8 @@ locals {
 }
 
 module "instance_template" {
-  # Waiting for 5.1 release
-  source             = "git@github.com:terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=1d569d86522eac599411ac7f44e26d1f5981840d"
-  # source           = "terraform-google-modules/vm/google//modules/instance_template"
-  # version          = "~> v5.1"
+  source           = "terraform-google-modules/vm/google//modules/instance_template"
+  version          = "~> v6.3.0"
   project_id         = var.project
   region             = var.region
   subnetwork         = var.subnetwork
@@ -70,9 +68,8 @@ module "instance_template" {
 
 module "proxy-mig" {
   # Waiting for 5.1 release
-  source             = "git@github.com:terraform-google-modules/terraform-google-vm.git//modules/mig?ref=1d569d86522eac599411ac7f44e26d1f5981840d"
-  # source           = "terraform-google-modules/vm/google//modules/instance_template"
-  # version          = "~> v5.1"
+  source           = "terraform-google-modules/vm/google//modules/mig"
+  version          = "~> v6.3.0"
   project_id         = var.project
   region             = var.region
   network            = var.network
