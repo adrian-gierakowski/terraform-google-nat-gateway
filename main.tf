@@ -30,7 +30,7 @@ data "template_file" "proxy-startup-script" {
 }
 
 locals {
-  zone                          = "${var.zone == "" ? lookup(var.region_params["${var.region}"], "zone") : var.zone}"
+  zone                          = var.zone == "" ? lookup(var.region_params[var.region], "zone") : var.zone
   name                          = "${var.name}proxy-${local.zone}"
   generated_proxy_instance_tags = ["inst-${local.zonal_tag}", "inst-${local.regional_tag}"]
   zonal_tag                     = "${var.name}proxy-${local.zone}"
